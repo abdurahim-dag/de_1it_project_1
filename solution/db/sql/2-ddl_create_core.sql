@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS mart.d_symbol_hist
     symbol_id bigint NOT NULL,
     symbol_valid_from timestamp with time zone NOT NULL,
     symbol_valid_to timestamp with time zone,
-    symbol_symbol_name character varying(50),
+    symbol_name character varying(50),
     CONSTRAINT symbol_hist_pk PRIMARY KEY (symbol_id, symbol_valid_from)
 );
 
