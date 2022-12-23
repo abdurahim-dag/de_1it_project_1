@@ -16,5 +16,14 @@ services:
       - "15432:5432"
     restart: always
 
+  metabase:
+    image: metabase/metabase:v0.45.1
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - metabase-data:/metabase
+    restart: always
+
 volumes:
   pg-data-1it-etl:
+  metabase-data:

@@ -1,7 +1,7 @@
 with upload as (
     select distinct u.upload_id, u.interval_name
     from staging.upload_hist u
-    where u.upload_id not in (select upload_id from staging.upload_hist where date='{{ds}}' and uploaded)
+    where u.upload_id not in (select upload_id from staging.upload_hist where date='{{ds}}' and uploaded is true)
 ),
  upload_stocks as (
      select distinct s.time,

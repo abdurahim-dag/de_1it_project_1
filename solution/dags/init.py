@@ -47,13 +47,19 @@ args = {
     'email_on_retry': False,
 }
 
-def download_csv(ti: TaskInstance, file_name: str, start_at: str):
+def download_csv(
+        ti: TaskInstance,
+        file_name: str,
+        start_at: str,
+        symbol: str,
+        interval: str,
+):
     key = Variable.get(API_KEY_ID)
 
     response = StocksIntraDayExtendedHook(
         API_CONN_ID,
-        SYMBOL,
-        INTERVAL,
+        symbol,
+        interval,
         key,
     ).get_time_series()
 
@@ -65,7 +71,14 @@ def download_csv(ti: TaskInstance, file_name: str, start_at: str):
     ti.xcom_push(key='start_at', value=start_at)
 
 
-def upload_csv(task: BaseOperator, ti: TaskInstance):
+def upload_csv(
+        task: BaseOperator,
+        ti: TaskInstance,
+        symbol: str,
+        interval: str,
+        schema: str,
+
+):
     _id = task.upstream_list[0].task_id
     file_path = ti.xcom_pull(key='file_path', task_ids=[_id])[0]
     start_at = ti.xcom_pull(key='start_at', task_ids=[_id])[0]
@@ -79,20 +92,18 @@ def upload_csv(task: BaseOperator, ti: TaskInstance):
     pg_hook = PostgresHook(postgres_conn_id=PG_CONN_ID)
     with pg_hook.get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(f"select upload_id from {SCHEMA_STAGE}.upload_hist where date='{start_at}'")
+            cur.execute(f"select upload_id from {schema}.upload_hist where date='{start_at}'")
             upload_id = cur.fetchone()
-            logging.info("upload_id")
-            logging.info(upload_id)
             if upload_id and upload_id[0]:
                 raise Exception(f"Запись за {start_at} уже существует!")
 
-            cur.execute(f"insert into {SCHEMA_STAGE}.upload_hist(symbol_name,interval_name,date) values('{SYMBOL}', '{INTERVAL}', '{start_at}') returning upload_id;")
+            cur.execute(f"insert into {schema}.upload_hist(symbol_name,interval_name,date) values('{symbol}', '{interval}', '{start_at}') returning upload_id;")
             upload_id = cur.fetchone()[0]
             df['upload_id'] = upload_id
             cols = ','.join(list(df.columns))
 
             if df.shape[0] > 0:
-                insert_cr = f"INSERT INTO {SCHEMA_STAGE}.stocks({cols}) VALUES " + "{cr_val};"
+                insert_cr = f"INSERT INTO {schema}.stocks({cols}) VALUES " + "{cr_val};"
                 i = 0
                 step = int(df.shape[0] / 100)
                 logging.info(f"insert stocks, step-{step}")
@@ -105,7 +116,7 @@ def upload_csv(task: BaseOperator, ti: TaskInstance):
 
                     i += step + 1
 
-# DAG#
+
 with DAG(
         'init-load-IBM',
         default_args=args,
@@ -122,6 +133,8 @@ with DAG(
         op_kwargs={
             'file_name': 'init.csv',
             'start_at': dt,
+            'symbol': 'IBM',
+            'interval': INTERVAL,
         },
         provide_context=True,
     )
@@ -130,6 +143,11 @@ with DAG(
         task_id='t_upload_csv_from_api',
         python_callable=upload_csv,
         provide_context=True,
+        op_kwargs={
+            'schema': SCHEMA_STAGE,
+            'symbol': 'IBM',
+            'interval': INTERVAL,
+        },
     )
 
     with TaskGroup('group_uploads') as group_uploads:
@@ -141,14 +159,6 @@ with DAG(
             '3-dml-d_symbol_hist',
             '4-dml-f_price',
         ]:
-            # dimension_tasks.append(PostgresOperator(
-            #     task_id=f'update_{i}',
-            #     postgres_conn_id=PG_CONN_ID,
-            #     sql=f"sql/{i}.sql",
-            #     dag=dag,
-            #     parameters={'date': {dt}},
-            # )
-            # )
             dimension_tasks.append(SQLExecuteQueryOperator(
                 task_id=f'update_{i}',
                 conn_id=PG_CONN_ID,
@@ -159,14 +169,5 @@ with DAG(
             ))
         dimension_tasks[0] >> dimension_tasks[2] >> dimension_tasks[1] >> dimension_tasks[3] >> dimension_tasks[4]
 
-    t_uploaded_fixing = SQLExecuteQueryOperator(
-        task_id='t_uploaded_fixing',
-        conn_id=PG_CONN_ID,
-        sql="""
-            update staging.upload_hist set uploaded=true  where date='{{ds}}'; 
-        """,
-        dag=dag
-    )
 
-
-    start >> t_download_csv_from_api >> t_upload_csv_from_api >> group_uploads >> t_uploaded_fixing >> end
+    start >> t_download_csv_from_api >> t_upload_csv_from_api >> group_uploads >> end

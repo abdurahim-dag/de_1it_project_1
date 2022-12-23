@@ -26,10 +26,10 @@ class StocksIntraDayHook(HttpHook):
         function = 'TIME_SERIES_INTRADAY'
         outputsize = 'full'
 
-        url=f"query?function={function}&interval={self.interval}&outputsize={outputsize}&symbol={self.symbol}&apikey{self.apikey}"
+        url=f"query?function={function}&interval={self.interval}&outputsize={outputsize}&symbol={self.symbol}&apikey={self.apikey}"
 
         """Returns count of page in API"""
-        return self.run(url).json()['results']
+        return self.run(url).json()
 
 
 class StocksIntraDayExtendedHook(HttpHook):

@@ -23,3 +23,4 @@ add-variable-api-key-airflow:
 start: 0-start
 add-connections-airflow: add-conn-pg_db add-conn-api-5m-airflow
 add-user-airflow: add-admin-airflow
+init: add-connections-airflow add-user-airflow add-variable-api-key-airflow

@@ -2,15 +2,15 @@ create schema if not exists staging;
 
 CREATE TABLE IF NOT EXISTS staging.stocks
 (
-    id bigserial,
+--     id bigserial,
     "time" timestamp with time zone NOT NULL,
     open numeric(10, 4),
     high numeric(10, 4),
     low numeric(10, 4),
     close numeric(10, 4),
     volume integer,
-    upload_id bigint,
-    CONSTRAINT stocks_pk PRIMARY KEY (id)
+    upload_id bigint
+--     CONSTRAINT stocks_pk PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS staging.upload_hist
