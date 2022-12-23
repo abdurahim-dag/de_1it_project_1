@@ -4,7 +4,7 @@ with upload as (
         u.symbol_name,
         u.interval_name
     from staging.upload_hist u
-    where u.upload_id not in (select upload_id from staging.upload_hist where date='{{ds}}')
+    where u.upload_id not in (select upload_id from staging.upload_hist where date='{{ds}}' and uploaded)
 ),
      upload_stocks_interval as (
          select

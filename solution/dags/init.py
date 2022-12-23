@@ -157,7 +157,16 @@ with DAG(
                 parameters={'date': {dt}},
 
             ))
-        dimension_tasks[0] >> dimension_tasks[1] >> dimension_tasks[2] >> dimension_tasks[3] >> dimension_tasks[4]
+        dimension_tasks[0] >> dimension_tasks[2] >> dimension_tasks[1] >> dimension_tasks[3] >> dimension_tasks[4]
+
+    t_uploaded_fixing = SQLExecuteQueryOperator(
+        task_id='t_uploaded_fixing',
+        conn_id=PG_CONN_ID,
+        sql="""
+            update staging.upload_hist set uploaded=true  where date='{{ds}}'; 
+        """,
+        dag=dag
+    )
 
 
-    start >> t_download_csv_from_api >> t_upload_csv_from_api >> group_uploads >> end
+    start >> t_download_csv_from_api >> t_upload_csv_from_api >> group_uploads >> t_uploaded_fixing >> end

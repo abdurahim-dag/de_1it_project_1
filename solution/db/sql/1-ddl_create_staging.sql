@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS staging.upload_hist
     date timestamp with time zone NOT NULL,
     symbol_name character varying(50) NOT NULL,
     interval_name character varying(200) NOT NULL,
+    uploaded boolean,
     PRIMARY KEY (upload_id)
 );
 
