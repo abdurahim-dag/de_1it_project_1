@@ -1,11 +1,9 @@
-from airflow.models.baseoperator import BaseOperator
+"""Хуки обращений к API."""
 from airflow.hooks.http_hook import HttpHook
-import logging
+
 
 class StocksIntraDayHook(HttpHook):
-    """
-    Interact with Stocks API.
-    """
+    """Interact with TIME_SERIES_INTRADAY Stocks API."""
 
     def __init__(
         self,
@@ -22,20 +20,17 @@ class StocksIntraDayHook(HttpHook):
         self.interval = interval
 
     def get_time_series(self):
-
         function = 'TIME_SERIES_INTRADAY'
         outputsize = 'full'
 
-        url=f"query?function={function}&interval={self.interval}&outputsize={outputsize}&symbol={self.symbol}&apikey={self.apikey}"
+        url = f"query?function={function}&interval={self.interval}&outputsize={outputsize}&symbol={self.symbol}&apikey={self.apikey}"
 
-        """Returns count of page in API"""
+        # Возвращаем json из данных по API
         return self.run(url).json()
 
 
 class StocksIntraDayExtendedHook(HttpHook):
-    """
-    Interact with Stocks API.
-    """
+    """Interact with Intraday (Extended History) Stocks API."""
 
     def __init__(
             self,
@@ -55,9 +50,10 @@ class StocksIntraDayExtendedHook(HttpHook):
     def get_time_series(self):
         function = 'TIME_SERIES_INTRADAY_EXTENDED'
 
-        slice = 'year1month3'
+        _slice = 'year1month3'
         adjusted = 'false'
 
-        url = f"query?function={function}&interval={self.interval}&adjusted={adjusted}&slice={slice}&symbol={self.symbol}&apikey={self.apikey}"
+        url = f"query?function={function}&interval={self.interval}&adjusted={adjusted}&slice={_slice}&symbol={self.symbol}&apikey={self.apikey}"
 
+        # Возвращаем response ответ от API.
         return self.run(url)

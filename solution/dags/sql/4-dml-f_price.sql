@@ -4,7 +4,8 @@ with upload as (
         u.symbol_name,
         u.interval_name
     from staging.upload_hist u
-    where u.upload_id not in (select upload_id from staging.upload_hist where date='{{ds}}' and uploaded is true)
+    where u.upload_id not in (select upload_id from staging.upload_hist where symbol_name=u.symbol_name and date='{{ds}}' and uploaded is true)
+    and u.uploaded is not true
 ),
      upload_stocks_interval as (
          select
@@ -18,7 +19,7 @@ with upload as (
              interval.interval_id,
              sa.symbol_id
          from staging.stocks s
-                  left join upload u on u.upload_id = s.upload_id
+                  join upload u on u.upload_id = s.upload_id
                   join mart.d_interval interval
                        on interval.interval_name = u.interval_name
                   join mart.d_symbol_act sa
@@ -37,8 +38,7 @@ with upload as (
              ts.time_serial_id
          from upload_stocks_interval usi
                   join mart.d_time_serial ts
-                       on ts.time_serial_interval_id = usi.interval_id and
-                          ts.time_serial_time = usi.time
+                       on ts.time_serial_time = usi.time
      )
 
 
@@ -52,7 +52,7 @@ select  us.open,
         us.time_serial_id
 from upload_stocks_ts us
 where us.time_serial_id not in(
-    select price_time_id
-    from mart.f_price
-    where symbol_id=us.symbol_id
+    select f.price_time_id
+    from mart.f_price f
+    where f.price_symbol_id=us.symbol_id
 )

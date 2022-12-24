@@ -1,3 +1,4 @@
+"""Модель данных загружаемой информации из файлов json."""
 from dataclasses import dataclass
 
 
