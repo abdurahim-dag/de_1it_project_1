@@ -49,12 +49,18 @@ def download_json(
 ):
     """Функция загрузки на локально хранение файлов с данными."""
 
+    def xcom_push():
+        # Сохраняем название файла и дату выгрузки в XCOM для след-го таска.
+        ti.xcom_push(key='file_path', value=path)
+        ti.xcom_push(key='start_at', value=start_at)
+
     # Задаём путь до файла и сохраняем данные.
     local_file_name = start_at.replace('-', '') + '_' + file_name
     path = 'dags/data/'+local_file_name
 
     # Если файл уже существует, то пропускаем этот таск.
     if Path(path).exists():
+        xcom_push()
         raise AirflowSkipException(f"Файл {path} уже скачан!")
 
     key = Variable.get(API_KEY_ID)
@@ -68,10 +74,8 @@ def download_json(
 
     file = open(path, 'wt', encoding='utf-8')
     json.dump(response, file)
+    xcom_push()
 
-    # Сохраняем название файла и дату выгрузки в XCOM для след-го таска.
-    ti.xcom_push(key='file_path', value=path)
-    ti.xcom_push(key='start_at', value=start_at)
 
 
 def upload_json(
@@ -203,6 +207,7 @@ with DAG(
             t_upload_to_staging = PythonOperator(
                 task_id=f"{symbol}_upload_to_staging",
                 python_callable=upload_json,
+                trigger_rule=TriggerRule.NONE_FAILED,
                 op_kwargs={
                     'schema': SCHEMA_STAGE,
                     'symbol': symbol,

@@ -45,6 +45,10 @@ def download_csv(
     interval: str,
 ):
     """Функция загрузки на локально хранение CSV файлов с данными."""
+    def xcom_push():
+        # Сохраняем название файла и дату выгрузки в XCOM для след-го таска.
+        ti.xcom_push(key='file_path', value=path)
+        ti.xcom_push(key='start_at', value=start_at)
 
     # Задаём путь до файла и сохраняем данные.
     local_file_name = start_at.replace('-', '') + '_' + file_name
@@ -52,6 +56,7 @@ def download_csv(
 
     # Если файл уже существует, то пропускаем этот таск.
     if Path(path).exists():
+        xcom_push()
         raise AirflowSkipException(f"Файл {path} уже скачан!")
 
     key = Variable.get(API_KEY_ID)
@@ -64,10 +69,7 @@ def download_csv(
     ).get_time_series()
 
     open(path, 'wb').write(response.content)
-
-    # Сохраняем название файла и дату выгрузки в XCOM для след-го таска.
-    ti.xcom_push(key='file_path', value=path)
-    ti.xcom_push(key='start_at', value=start_at)
+    xcom_push()
 
 
 def upload_csv(
@@ -162,6 +164,7 @@ with DAG(
             t_upload_to_staging = PythonOperator(
                 task_id=f"{symbol}_upload_to_staging",
                 python_callable=upload_csv,
+                trigger_rule=TriggerRule.NONE_FAILED,
                 provide_context=True,
                 op_kwargs={
                     'schema': SCHEMA_STAGE,
