@@ -48,21 +48,21 @@
 |---------------------------------|----------------|------------------------------------|--------------|----------------|
 | CSV файл                        |                |                                    |              | staging.stocks |
 | (TIME_SERIES_INTRADAY_EXTENDED) |                |                                    |              |                |
-|                                 | time           | Преобразование зоны времени в UTC. |              | time           |
-|                                 | open           | =                                  |              | open           |
-|                                 | high           | =                                  |              | high           |
-|                                 | low            | =                                  |              | low            |
-|                                 | close          | =                                  |              | close          |
-|                                 | volume         | =                                  |              | volume         |
+|                                 | time           | Преобразование зоны времени в UTC. | time         |                |
+|                                 | open           | =                                  | open         |                |
+|                                 | high           | =                                  | high         |                |
+|                                 | low            | =                                  | low          |                |
+|                                 | close          | =                                  | close        |                |
+|                                 | volume         | =                                  | volume       |                |
 | JSON файл                       |                |                                    |              | staging.stocks |
 | (TIME_SERIES_INTRADAY)          |                |                                    |              |                |
 | "Time Series (5min)": {         |                |                                    |              |                |
-|                                 | \<Time Serie\> | Преобразование зоны времени в UTC. |              | time           |
-|                                 | "1. open"      |                                    |              | open           |
-|                                 | "2. high"      |                                    |              | high           |
-|                                 | "3. low"       |                                    |              | low            |
-|                                 | "4. close"     |                                    |              | close          |
-|                                 | "5. volume"    |                                    |              | volume         |
+|                                 | \<Time Serie\> | Преобразование зоны времени в UTC. | time         |                |
+|                                 | "1. open"      | =                                  | open         |                |
+|                                 | "2. high"      | =                                  | high         |                |
+|                                 | "3. low"       | =                                  | low          |                |
+|                                 | "4. close"     | =                                  | close        |                |
+|                                 | "5. volume"    | =                                  | volume       |                |
 
 
 
