@@ -148,6 +148,7 @@ with DAG(
             'symbol': 'IBM',
             'interval': INTERVAL,
         },
+
     )
 
     with TaskGroup('group_uploads') as group_uploads:
